@@ -70,7 +70,8 @@ int main()
         std::cout << "⚗️ 연금술 공방 관리 시스템" << std::endl;
         std::cout << "1. 레시피 추가" << std::endl;
         std::cout << "2. 모든 레시피 출력" << std::endl;
-        std::cout << "3. 종료" << std::endl;
+        std::cout << "3. 물약 검색" << std::endl;
+        std::cout << "4. 종료" << std::endl;
         std::cout << "선택: ";
 
         int choice;
@@ -124,8 +125,10 @@ int main()
         case 2:
             myWorkshop.displayAllRecipes();
             break;
-            
         case 3:
+            
+            break;
+        case 4:
             std::cout << "공방 문을 닫습니다..." << std::endl;
             break;
         }
