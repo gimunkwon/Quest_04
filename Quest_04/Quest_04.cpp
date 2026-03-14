@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <map>
 
 using list = std::pair<std::string,std::vector<std::string>>;
 
@@ -20,19 +21,120 @@ private:
     std::vector<std::string> ingredients; // 단일 재료에서 재료 '목록'으로 변경
 };
 
+// 레시피가 등록되면 물약을 만들고 재고를 쌓는 창고
+class StockManger
+{
+public:
+    static StockManger* GetInstance()
+    {
+        if (StockMangerInstance == nullptr)
+        {
+            StockMangerInstance = new StockManger();
+        }
+        return StockMangerInstance;
+    }
+    void InitializeStock(const std::string& PotionName)
+    {
+        PotionStock.insert({PotionName,MAX_STOCK});
+    }
+    void DispencePotion(const std::string& PotionName)
+    {
+        auto it = PotionStock.find(PotionName);
+        
+        if (it != PotionStock.end())
+        {
+            if (it->second > 0)
+            {
+                it->second -= 1;
+                std::cout << PotionName << "이 지급되었습니다." << "\n";
+                std::cout << "현재 재고: " << it->second << "\n";
+            }
+            else
+            {
+                std::cout << PotionName << "재고가 없습니다." <<"\n";
+            }
+        }
+        else
+        {
+            std::cout << "해당 물약은 존재하지 않습니다." << "\n";
+        }
+    }
+    void returnPotion(const std::string& PotionName)
+    {
+        auto it = PotionStock.find(PotionName);
+        if (it != PotionStock.end())
+        {
+            if (it->second < MAX_STOCK)
+            {
+                it->second += 1;
+                std::cout << PotionName << "의 공병을 반납했습니다." << "\n";
+                std::cout << "현재 재고: " << it->second << "\n";
+            }
+            else
+            {
+                std::cout << "이미 재고가 초과했습니다." << "\n";
+            }
+        }
+        else
+        {
+            std::cout << "해당 물약은 존재하지 않습니다." << "\n";
+        }
+        
+    }
+    void getStock(const std::string& PotionName)
+    {
+        auto it = PotionStock.find(PotionName);
+        if (it != PotionStock.end())
+        {
+            std::cout << "포션 이름: " << PotionName << "\n";
+            std::cout << "현재 재고: " << it->second << "\n";
+        }
+        else
+        {
+            std::cout << PotionName << "은 존재하지 않습니다." << "\n";
+        }
+    }
+    void ShowAllStocks()
+    {
+        std::cout << "현재 창고에 저장되어있는 포션:" << "\n";
+        for (const auto& p : PotionStock)
+        {
+            std::cout <<"["<< p.first <<"]" << " ";
+        }
+        std::cout << "\n";
+    }
+private:
+    const int MAX_STOCK = 3;
+    std::map<std::string,int> PotionStock;
+    static StockManger* StockMangerInstance;
+};
+
 
 // AlchemyWorkshop 클래스: 레시피 목록을 관리
 class AlchemyWorkshop 
 {
 private:
     std::vector<PotionRecipe> recipes;
-
+    StockManger* stockManager = nullptr;
 public:
+    AlchemyWorkshop(StockManger* stock_manger) : stockManager(stock_manger){}
+    
     // addRecipe 메서드: 재료 목록(vector)을 매개변수로 받도록 수정
     void addRecipe(const std::string& name, const std::vector<std::string>& ingredients) 
     {
+        for (const auto& recipe : recipes)
+        {
+            if (recipe.GetPotionName() == name)
+            {
+                std::cout << "이미" << name <<"이 존재합니다." << "\n";
+                return;
+            }
+        }
+        
+        
         recipes.push_back(PotionRecipe(name, ingredients));
         std::cout << ">> 새로운 레시피 '" << name << "'이(가) 추가되었습니다." << std::endl;
+        notify(name);
     }
 
     // 모든 레시피 출력 메서드
@@ -85,6 +187,7 @@ public:
                 }
             }
         }
+        
         // 물약의 이름으로도 찾지 못했을 경우
         else if (!bIsIngredientFound)
         {
@@ -125,33 +228,51 @@ public:
             
             for (int i = 0; i < v_tmpPotion.size(); i++)
             {
-                std::cout << v_tmpPotion[i].first <<"\n";
-                
-                for (int j = 0; j < v_tmpPotion[i].second.size(); j++)
+                if (!(v_tmpPotion[i].first == ""))
                 {
-                    std::cout << v_tmpPotion[i].second[j] << "\n";
+                    std::cout << "물약 이름: ";
+                    std::cout << v_tmpPotion[i].first <<"\n";
+                
+                    std::cout << "레시피 재료:" << "\n";
+                    for (int j = 0; j < v_tmpPotion[i].second.size(); j++)
+                    {
+                        std::cout << v_tmpPotion[i].second[j] << "\n";
+                    }
                 }
             }
     
         }
         else
         {
-            std::cout << findingname << "을 찾을수 없습니다!" << "\n";
+            std::cout << findingname << "찾을 수 없습니다!" << "\n";
             return false;
         }
     }
+    
+    // 레시피가 등록시 stockmanager에게 알림을 보내는 메서드
+    void notify(const std::string& PotionName)
+    {
+        stockManager->InitializeStock(PotionName);
+    }
 };
+
+StockManger* StockManger::StockMangerInstance = nullptr;
 
 int main() 
 {
-    AlchemyWorkshop myWorkshop;
     
-    while (true) {
+    StockManger* myStock = StockManger::GetInstance();
+    AlchemyWorkshop myWorkshop(myStock);
+    bool bCanExit = false;
+    
+    while (!bCanExit) 
+    {
         std::cout << "⚗️ 연금술 공방 관리 시스템" << std::endl;
         std::cout << "1. 레시피 추가" << std::endl;
         std::cout << "2. 모든 레시피 출력" << std::endl;
         std::cout << "3. 물약 검색" << std::endl;
-        std::cout << "4. 종료" << std::endl;
+        std::cout << "4. 창고 진입" << std::endl;
+        std::cout << "5. 종료" << std::endl;
         std::cout << "선택: ";
 
         int choice;
@@ -225,7 +346,70 @@ int main()
             }
             break;
         case 4:
+            {
+                bool bCanEnter = true;
+                
+                std::cout << "========================" << "\n";
+                std::cout << "창고에 진입 했습니다." << "\n";
+                std::cout << "========================" << "\n";
+                while (bCanEnter)
+                {
+
+                    std::cout << "========================" << "\n";
+                    std::cout << "1. 물약 지급 받기" << "\n";
+                    std::cout << "2. 물약 공병 반납하기" << "\n";
+                    std::cout << "3. 현재 창고의 재고" << "\n";
+                    std::cout << "4. 창고에서 나가기" << "\n";
+                    std::cout << "========================" << "\n";
+                
+                    int insertnumber;
+                    std::cin >> insertnumber;
+
+                    switch (insertnumber)
+                    {
+                    case 1:
+                        {
+                            
+                            std::string PotionName;
+                            std::cout << "지급받을 물약의 이름을 입력하세요" <<"\n";
+                            myStock->ShowAllStocks();
+                            std::cin.ignore(10000, '\n');
+                            std::getline(std::cin, PotionName);
+                            myStock->DispencePotion(PotionName);
+                        }
+                        break;
+                    case 2:
+                        {
+                            std::string PotionName;
+                            std::cout << "반납할 물약의 이름을 입력하세요" <<"\n";
+                            std::cin.ignore(10000, '\n');
+                            std::getline(std::cin, PotionName);
+                            
+                            myStock->returnPotion(PotionName);
+                        }
+                        break;
+                    case 3:
+                        {
+                            std::string PotionName;
+                            std::cout << "재고를 검색할 물약의 이름을 입력하세요" <<"\n";
+                            myStock->ShowAllStocks();
+                            std::cin.ignore(10000, '\n');
+                            std::getline(std::cin, PotionName);
+                            
+                            myStock->getStock(PotionName);
+                        }
+                        break;
+                    case 4:
+                        std::cout << "창고에서 나갑니다." << "\n";
+                        bCanEnter = false;
+                        break;
+                    }
+                }
+            }
+            break;
+        case 5:
             std::cout << "공방 문을 닫습니다..." << std::endl;
+            bCanExit = true;
             break;
         }
     }
