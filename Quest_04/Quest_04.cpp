@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 
+using list = std::pair<std::string,std::vector<std::string>>;
+
 // PotionRecipe 클래스: 재료 목록을 vector<string>으로 변경
 class PotionRecipe 
 {
@@ -17,6 +19,7 @@ private:
     std::string potionName;
     std::vector<std::string> ingredients; // 단일 재료에서 재료 '목록'으로 변경
 };
+
 
 // AlchemyWorkshop 클래스: 레시피 목록을 관리
 class AlchemyWorkshop 
@@ -63,33 +66,44 @@ public:
     }
     
     // 물약이름 or 재료로 등록되있는 물약찾는 메서드
-    void findRecipe(const std::string& name, const std::string& ingredient = "")
+    bool findRecipe(const std::string& name, const std::string& ingredient = "")
     {
-        bool bIsFound = false;
+        bool bIsNameFound = false;
+        bool bIsIngredientFound = false;
         std::string findingname = name;
         std::string findingingredient = ingredient;
+        std::vector<list> v_tmpPotion(recipes.size());
         
         // 물약의 이름으로 찾기
-        for (const auto& recipe : recipes)
+        if (name != "")
         {
-            if (recipe.GetPotionName() == name)
+            for (const auto& recipe : recipes)
             {
-                bIsFound = true;
-            }
-        }
-        // 물약의 이름으로도 찾지 못했을 경우
-        if (!bIsFound)
-        {
-            for (int i = 0; i < recipes.size(); ++i)
-            {
-                if(recipes[i].getIngredients()[i] == findingingredient)
+                if (findingname == recipe.GetPotionName())
                 {
-                    bIsFound = true;
+                    bIsNameFound = true;
                 }
             }
         }
+        // 물약의 이름으로도 찾지 못했을 경우
+        else if (!bIsIngredientFound)
+        {
+            for (int i = 0; i < recipes.size(); ++i)
+            {
+                for (int j = 0; j < recipes[i].getIngredients().size(); ++j)
+                {
+                    if(recipes[i].getIngredients()[j] == findingingredient)
+                    {
+                        bIsIngredientFound = true;
+                        v_tmpPotion[i].first = recipes[i].GetPotionName();
+                        v_tmpPotion[i].second = recipes[i].getIngredients();
+                    }
+                }
+                
+            }
+        }
         
-        if (bIsFound)
+        if (bIsNameFound)
         {
             std::cout << findingname << "을 찾았습니다. 레시피를 출력합니다." << "\n";
             for (int i = 0; i < recipes.size(); ++i)
@@ -99,15 +113,32 @@ public:
                     for (int j = 0; j < recipes[i].getIngredients().size(); ++j)
                     {
                         std::cout << recipes[i].getIngredients()[j] << "\n";
+                        
                     }
+                    break;
                 }
             }
+        }
+        else if (bIsIngredientFound)
+        {
+            std::cout << "재료와 일치하는 레시피를 출력합니다." << "\n";
+            
+            for (int i = 0; i < v_tmpPotion.size(); i++)
+            {
+                std::cout << v_tmpPotion[i].first <<"\n";
+                
+                for (int j = 0; j < v_tmpPotion[i].second.size(); j++)
+                {
+                    std::cout << v_tmpPotion[i].second[j] << "\n";
+                }
+            }
+    
         }
         else
         {
             std::cout << findingname << "을 찾을수 없습니다!" << "\n";
+            return false;
         }
-        
     }
 };
 
@@ -180,7 +211,17 @@ int main()
                 std::cout << "이름을 입력해주세요" <<"\n";
                 std::cin.ignore(10000, '\n');
                 std::getline(std::cin, inputname);
-                myWorkshop.findRecipe(inputname);
+                if (myWorkshop.findRecipe(inputname))
+                {
+                    break;
+                }
+                else
+                {
+                    std::string ingredient;
+                    std::cout << "재료를 입력해주세요" << "\n";
+                    std::getline(std::cin, ingredient);
+                    myWorkshop.findRecipe("",ingredient);
+                }
             }
             break;
         case 4:
