@@ -53,7 +53,7 @@ public:
 
 int main() {
     AlchemyWorkshop myWorkshop;
-
+    
     while (true) {
         std::cout << "⚗️ 연금술 공방 관리 시스템" << std::endl;
         std::cout << "1. 레시피 추가" << std::endl;
@@ -70,45 +70,51 @@ int main() {
             std::cin.ignore(10000, '\n');
             continue;
         }
+        
+        // switch case문으로 수정
+        
+        switch (choice)
+        {
+        case 1:
+            {
+                if (choice == 1) {
+                    std::string name;
+                    std::cout << "물약 이름: ";
+                    std::cin.ignore(10000, '\n');
+                    std::getline(std::cin, name);
 
-        if (choice == 1) {
-            std::string name;
-            std::cout << "물약 이름: ";
-            std::cin.ignore(10000, '\n');
-            std::getline(std::cin, name);
-
-            // 여러 재료를 입력받기 위한 로직
-            std::vector<std::string> ingredients_input;
-            std::string ingredient;
-            std::cout << "필요한 재료들을 입력하세요. (입력 완료 시 '끝' 입력)" << std::endl;
+                    // 여러 재료를 입력받기 위한 로직
+                    std::vector<std::string> ingredients_input;
+                    std::string ingredient;
+                    std::cout << "필요한 재료들을 입력하세요. (입력 완료 시 '끝' 입력)" << std::endl;
             
-            while (true) {
-                std::cout << "재료 입력: ";
-                std::getline(std::cin, ingredient);
+                    while (true) {
+                        std::cout << "재료 입력: ";
+                        std::getline(std::cin, ingredient);
                 
-                // 사용자가 '끝'을 입력하면 재료 입력 종료
-                if (ingredient == "끝") {
-                    break;
-                }
-                ingredients_input.push_back(ingredient);
-            }
+                        // 사용자가 '끝'을 입력하면 재료 입력 종료
+                        if (ingredient == "끝") {
+                            break;
+                        }
+                        ingredients_input.push_back(ingredient);
+                    }
 
-            // 입력받은 재료가 하나 이상 있을 때만 레시피 추가
-            if (!ingredients_input.empty()) {
-                 myWorkshop.addRecipe(name, ingredients_input);
-            } else {
-                std::cout << ">> 재료가 입력되지 않아 레시피 추가를 취소합니다." << std::endl;
+                    // 입력받은 재료가 하나 이상 있을 때만 레시피 추가
+                    if (!ingredients_input.empty()) {
+                        myWorkshop.addRecipe(name, ingredients_input);
+                    } else {
+                        std::cout << ">> 재료가 입력되지 않아 레시피 추가를 취소합니다." << std::endl;
+                    }
             }
-
-        } else if (choice == 2) {
+            break;
+            
+        case 2:
             myWorkshop.displayAllRecipes();
-
-        } else if (choice == 3) {
+            break;
+            
+        case 3:
             std::cout << "공방 문을 닫습니다..." << std::endl;
             break;
-
-        } else {
-            std::cout << "잘못된 선택입니다. 다시 시도하세요." << std::endl;
         }
     }
 
