@@ -12,6 +12,7 @@ public:
     // 생성자: 재료 목록을 받아 초기화하도록 수정
     PotionRecipe(const std::string& name, const std::vector<std::string>& ingredients)
         : potionName(name), ingredients(ingredients) {}
+    
 private:
     std::string potionName;
     std::vector<std::string> ingredients; // 단일 재료에서 재료 '목록'으로 변경
@@ -59,6 +60,54 @@ public:
             std::cout << std::endl;
         }
         std::cout << "---------------------------\n";
+    }
+    
+    // 물약이름 or 재료로 등록되있는 물약찾는 메서드
+    void findRecipe(const std::string& name, const std::string& ingredient = "")
+    {
+        bool bIsFound = false;
+        std::string findingname = name;
+        std::string findingingredient = ingredient;
+        
+        // 물약의 이름으로 찾기
+        for (const auto& recipe : recipes)
+        {
+            if (recipe.GetPotionName() == name)
+            {
+                bIsFound = true;
+            }
+        }
+        // 물약의 이름으로도 찾지 못했을 경우
+        if (!bIsFound)
+        {
+            for (int i = 0; i < recipes.size(); ++i)
+            {
+                if(recipes[i].getIngredients()[i] == findingingredient)
+                {
+                    bIsFound = true;
+                }
+            }
+        }
+        
+        if (bIsFound)
+        {
+            std::cout << findingname << "을 찾았습니다. 레시피를 출력합니다." << "\n";
+            for (int i = 0; i < recipes.size(); ++i)
+            {
+                if (recipes[i].GetPotionName() == findingname)
+                {
+                    for (int j = 0; j < recipes[i].getIngredients().size(); ++j)
+                    {
+                        std::cout << recipes[i].getIngredients()[j] << "\n";
+                    }
+                }
+            }
+        }
+        else
+        {
+            std::cout << findingname << "을 찾을수 없습니다!" << "\n";
+        }
+        
     }
 };
 
@@ -126,7 +175,13 @@ int main()
             myWorkshop.displayAllRecipes();
             break;
         case 3:
-            
+            {
+                std::string inputname;
+                std::cout << "이름을 입력해주세요" <<"\n";
+                std::cin.ignore(10000, '\n');
+                std::getline(std::cin, inputname);
+                myWorkshop.findRecipe(inputname);
+            }
             break;
         case 4:
             std::cout << "공방 문을 닫습니다..." << std::endl;
